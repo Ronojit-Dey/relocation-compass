@@ -1,0 +1,29 @@
+Mongo_username = rana062004_db_user
+
+Mongo_password = bUXZwTXTTVBRmRX6
+
+
+
+my ip = 47.30.246.217
+
+
+python -m pip install "pymongo[srv]==3.12"
+
+mongodb+srv://<db_username>:bUXZwTXTTVBRmRX6@relocation-cluster.itujhyu.mongodb.net/?appName=relocation-cluster
+
+
+
+from pymongo import MongoClient
+from pymongo.server_api import ServerApi
+
+uri = "mongodb+srv://<db_username>:bUXZwTXTTVBRmRX6@relocation-cluster.itujhyu.mongodb.net/?appName=relocation-cluster"
+
+# Create a new client and connect to the server
+client = MongoClient(uri, server_api=ServerApi('1'))
+
+# Send a ping to confirm a successful connection
+try:
+    client.admin.command('ping')
+    print("Pinged your deployment. You successfully connected to MongoDB!")
+except Exception as e:
+    print(e)
