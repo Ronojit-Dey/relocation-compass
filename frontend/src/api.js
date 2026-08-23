@@ -1,5 +1,4 @@
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
-
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "https://relocation-compass-l82u.onrender.com";
 
 const MOCK_CITIES = [
   {
@@ -44,7 +43,6 @@ const MOCK_CITIES = [
   }
 ];
 
-
 export async function fetchCities() {
   try {
     const res = await fetch(`${API_BASE}/api/cities`);
@@ -53,7 +51,7 @@ export async function fetchCities() {
     if (Array.isArray(data) && data.length > 0) return data;
     return MOCK_CITIES;
   } catch (err) {
-    console.warn("Backend unavailable, using mock city dataset for visual testing:", err);
+    console.warn("Backend unavailable, using fallback:", err);
     return MOCK_CITIES;
   }
 }
@@ -72,7 +70,7 @@ export async function compareCities(originCity, targetCity, currentSalary) {
     if (!res.ok) throw new Error("API offline");
     return await res.json();
   } catch (err) {
-    console.warn("Backend unavailable, computing comparison locally with mock data.");
+    console.warn("Backend unavailable, using local calculation:", err);
     const originObj = MOCK_CITIES.find(c => c.city === originCity) || MOCK_CITIES[0];
     const targetObj = MOCK_CITIES.find(c => c.city === targetCity) || MOCK_CITIES[1];
 
