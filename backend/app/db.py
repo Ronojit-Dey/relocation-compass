@@ -10,13 +10,9 @@ DB_NAME = os.getenv("DB_NAME", "relocation_compass")
 if not MONGO_URI:
     raise ValueError("MONGODB_URI is not set in backend/.env")
 
-# Ensure tls options are appended to URI to prevent Windows TLS handshake drops
-sep = "&" if "?" in MONGO_URI else "?"
-connection_uri = f"{MONGO_URI}{sep}tls=true&tlsAllowInvalidCertificates=true"
-
 client = AsyncIOMotorClient(
-    connection_uri,
-    serverSelectionTimeoutMS=10000
+    MONGO_URI,
+    serverSelectionTimeoutMS=5000
 )
 
 db = client[DB_NAME]
