@@ -1,12 +1,14 @@
 import React from "react";
 import { Compass, ArrowRight, PieChart, Scale, Globe } from "lucide-react";
 import HeroScene from "./HeroScene";
+import PipelineRoadmap from "./PipelineRoadmap";
+import Footer from "./Footer";
 
 export default function LandingPage({ onExplore }) {
   return (
     <div className="bg-background text-on-surface min-h-screen selection:bg-primary-container selection:text-on-primary-container relative">
       {/* Top Brand Header */}
-      <header className="w-full absolute top-0 left-0 p-6 md:p-12 z-50 flex justify-between items-center max-w-container-max mx-auto">
+      <header className="w-full absolute top-0 left-0 py-4 px-6 md:px-12 z-50 flex justify-between items-center max-w-container-max mx-auto">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-full shadow-neo-sm bg-background flex items-center justify-center">
             <Compass className="w-6 h-6 text-primary" />
@@ -18,9 +20,9 @@ export default function LandingPage({ onExplore }) {
       </header>
 
       {/* Main Canvas */}
-      <main className="w-full max-w-container-max mx-auto px-6 md:px-12 pt-32 pb-24 relative">
+      <main className="w-full max-w-container-max mx-auto px-6 md:px-12 pt-16 pb-12 relative">
         {/* Hero Section */}
-        <section className="relative min-h-[520px] flex flex-col items-center justify-center text-center z-10 mb-20 mt-4">
+        <section className="relative min-h-[360px] flex flex-col items-center justify-center text-center z-10 mb-8 mt-1">
           {/* Abstract Neomorphic Blob + 3D Canvas Background */}
           <div className="absolute inset-0 z-[-1] flex items-center justify-center pointer-events-none">
             <div className="w-[380px] h-[380px] md:w-[500px] md:h-[500px] animate-organic-blob bg-gradient-to-br from-primary-container to-brand-dark opacity-25 blur-[70px]"></div>
@@ -98,7 +100,10 @@ export default function LandingPage({ onExplore }) {
             </div>
           </div>
         </section>
+        {/* Technical Pipeline Roadmap */}
+        <PipelineRoadmap />
       </main>
+      <Footer onExplore={onExplore} />
     </div>
   );
 }

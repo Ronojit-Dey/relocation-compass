@@ -1,39 +1,55 @@
 import React, { useState, useEffect } from "react";
-import { Building2, PlaneTakeoff, DollarSign, ArrowDown, ArrowUp } from "lucide-react";
+import { Building2, PlaneTakeoff, DollarSign, ArrowDown, ArrowUp, Coins } from "lucide-react";
 import CostChart from "./CostChart";
 import DetailedBreakdown from "./DetailedBreakdown";
+import CitySearchSelect from "./CitySearchSelect";
 import { fetchCities, compareCities } from "../api";
+
+const CURRENCY_PRESETS = [
+  { code: "USD", symbol: "$", rate: 1.0 },
+  { code: "INR", symbol: "₹", rate: 83.5 },
+  { code: "EUR", symbol: "€", rate: 0.92 },
+  { code: "GBP", symbol: "£", rate: 0.79 },
+  { code: "CAD", symbol: "CA$", rate: 1.36 },
+  { code: "AUD", symbol: "A$", rate: 1.52 },
+  { code: "CUSTOM", symbol: "¤", rate: 1.0 }
+];
 
 export default function Dashboard({ onBack }) {
   const [cities, setCities] = useState([]);
   const [origin, setOrigin] = useState("San Francisco");
   const [target, setTarget] = useState("Austin");
   const [salary, setSalary] = useState(120000);
+  const [currency, setCurrency] = useState(CURRENCY_PRESETS[0]);
+  const [customRate, setCustomRate] = useState(1.0);
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("dashboard"); // "dashboard" | "comparison"
 
+  const effectiveRate = currency.code === "CUSTOM" ? (customRate || 1.0) : currency.rate;
+
   useEffect(() => {
     fetchCities().then((data) => {
-      console.log("Cities loaded from backend:", data ? data.length : 0);
       if (Array.isArray(data) && data.length > 0) {
         setCities(data);
         
-        // Pick default cities that exist in dataset
         const defaultOrigin = data.find(c => c.city.toLowerCase().includes("san francisco"))?.city || data[0].city;
         const defaultTarget = data.find(c => c.city.toLowerCase().includes("austin"))?.city || (data[1] ? data[1].city : data[0].city);
         
         setOrigin(defaultOrigin);
         setTarget(defaultTarget);
-        executeComparison(defaultOrigin, defaultTarget, salary);
+        executeComparison(defaultOrigin, defaultTarget, salary, effectiveRate);
       }
     });
   }, []);
-  const executeComparison = async (originCity, targetCity, currentSalary) => {
+
+  const executeComparison = async (originCity, targetCity, currentSalary, rate = effectiveRate) => {
     if (!originCity || !targetCity || !currentSalary) return;
     setLoading(true);
     try {
-      const data = await compareCities(originCity, targetCity, currentSalary);
+      // Convert entered native salary to base USD for the API
+      const baseSalaryUSD = currentSalary / (rate || 1.0);
+      const data = await compareCities(originCity, targetCity, baseSalaryUSD);
       setResult(data);
     } catch (err) {
       console.error(err);
@@ -44,7 +60,14 @@ export default function Dashboard({ onBack }) {
 
   const handleCalculate = (e) => {
     e.preventDefault();
-    executeComparison(origin, target, salary);
+    executeComparison(origin, target, salary, effectiveRate);
+  };
+
+  const handleCurrencyChange = (code) => {
+    const selected = CURRENCY_PRESETS.find((c) => c.code === code) || CURRENCY_PRESETS[0];
+    setCurrency(selected);
+    const newRate = selected.code === "CUSTOM" ? customRate : selected.rate;
+    executeComparison(origin, target, salary, newRate);
   };
 
   return (
@@ -99,70 +122,92 @@ export default function Dashboard({ onBack }) {
         {/* Controls Section (Neomorphic Raised) */}
         <form
           onSubmit={handleCalculate}
-          className="shadow-neo rounded-2xl p-6 md:p-8 bg-surface flex flex-wrap gap-6 items-end"
+          className="shadow-neo rounded-2xl p-6 md:p-8 bg-surface flex flex-col gap-6"
         >
-          <div className="flex-1 min-w-[220px]">
-            <label className="block text-xs font-semibold text-on-surface-variant mb-2 ml-1 uppercase tracking-wider">
-              Origin City
-            </label>
-            <div className="relative">
-              <Building2 className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-outline pointer-events-none" />
-              <select
-                value={origin}
-                onChange={(e) => setOrigin(e.target.value)}
-                className="w-full h-12 bg-surface shadow-neo-inset rounded-xl pl-12 pr-4 border-none text-sm font-medium text-on-surface focus:outline-none appearance-none"
-              >
-                {cities.map((c, i) => (
-                  <option key={i} value={c.city}>
-                    {c.city}, {c.country}
-                  </option>
-                ))}
-              </select>
-            </div>
+          {/* Row 1: Searchable City Selectors */}
+          <div className="flex flex-wrap gap-6">
+            <CitySearchSelect
+              label="Origin City"
+              icon={Building2}
+              cities={cities}
+              selectedCity={origin}
+              onSelectCity={setOrigin}
+              placeholder="Type origin city..."
+            />
+
+            <CitySearchSelect
+              label="Destination City"
+              icon={PlaneTakeoff}
+              cities={cities}
+              selectedCity={target}
+              onSelectCity={setTarget}
+              placeholder="Type destination city..."
+            />
           </div>
 
-          <div className="flex-1 min-w-[220px]">
-            <label className="block text-xs font-semibold text-on-surface-variant mb-2 ml-1 uppercase tracking-wider">
-              Destination City
-            </label>
-            <div className="relative">
-              <PlaneTakeoff className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-outline pointer-events-none" />
-              <select
-                value={target}
-                onChange={(e) => setTarget(e.target.value)}
-                className="w-full h-12 bg-surface shadow-neo-inset rounded-xl pl-12 pr-4 border-none text-sm font-medium text-on-surface focus:outline-none appearance-none"
-              >
-                {cities.map((c, i) => (
-                  <option key={i} value={c.city}>
-                    {c.city}, {c.country}
-                  </option>
-                ))}
-              </select>
+          {/* Row 2: Salary + Currency Selector + Exchange Rate + Calculate Button */}
+          <div className="flex flex-wrap gap-6 items-end">
+            <div className="flex-1 min-w-[180px]">
+              <label className="block text-xs font-semibold text-on-surface-variant mb-2 ml-1 uppercase tracking-wider">
+                Current Salary ({currency.symbol})
+              </label>
+              <div className="relative">
+                <DollarSign className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-outline pointer-events-none" />
+                <input
+                  type="number"
+                  value={salary}
+                  onChange={(e) => setSalary(Number(e.target.value))}
+                  className="w-full h-12 bg-surface shadow-neo-inset rounded-xl pl-12 pr-4 border-none text-sm font-medium text-on-surface focus:outline-none"
+                />
+              </div>
             </div>
-          </div>
 
-          <div className="flex-1 min-w-[200px]">
-            <label className="block text-xs font-semibold text-on-surface-variant mb-2 ml-1 uppercase tracking-wider">
-              Current Salary ($ USD)
-            </label>
-            <div className="relative">
-              <DollarSign className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-outline pointer-events-none" />
+            <div className="w-[160px]">
+              <label className="block text-xs font-semibold text-on-surface-variant mb-2 ml-1 uppercase tracking-wider">
+                Currency
+              </label>
+              <div className="relative">
+                <Coins className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-outline pointer-events-none" />
+                <select
+                  value={currency.code}
+                  onChange={(e) => handleCurrencyChange(e.target.value)}
+                  className="w-full h-12 bg-surface shadow-neo-inset rounded-xl pl-12 pr-4 border-none text-sm font-medium text-on-surface focus:outline-none cursor-pointer appearance-none"
+                >
+                  {CURRENCY_PRESETS.map((c) => (
+                    <option key={c.code} value={c.code}>
+                      {c.code} ({c.symbol})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="w-[180px]">
+              <label className="block text-xs font-semibold text-on-surface-variant mb-2 ml-1 uppercase tracking-wider">
+                Rate (1 USD = )
+              </label>
               <input
                 type="number"
-                value={salary}
-                onChange={(e) => setSalary(Number(e.target.value))}
-                className="w-full h-12 bg-surface shadow-neo-inset rounded-xl pl-12 pr-4 border-none text-sm font-medium text-on-surface focus:outline-none"
+                value={effectiveRate}
+                
+                onChange={(e) => setCustomRate(Number(e.target.value))}
+                step="0.01"
+                className={`w-full h-12 rounded-xl px-4 border-none text-sm font-medium focus:outline-none transition-all ${
+                  currency.code === "CUSTOM"
+                    ? "bg-surface shadow-neo-inset text-primary font-bold"
+                    : "bg-surface shadow-neo-inset text-on-surface-variant/60 cursor-not-allowed opacity-80"
+                }`}
               />
             </div>
-          </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="h-12 px-8 bg-primary-container text-on-surface font-headline text-base font-bold rounded-xl shadow-neo-button active:shadow-neo-inset transition-all whitespace-nowrap cursor-pointer"
-          >
-            {loading ? "Calculating..." : "Calculate"}
-          </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="h-12 px-8 bg-primary-container text-on-surface font-headline text-base font-bold rounded-xl shadow-neo-button active:shadow-neo-inset transition-all whitespace-nowrap cursor-pointer ml-auto"
+            >
+              {loading ? "Calculating..." : "Calculate"}
+            </button>
+          </div>
         </form>
 
         {/* Dashboard Grid View */}
@@ -175,7 +220,7 @@ export default function Dashboard({ onBack }) {
                 Target Salary Required
               </h3>
               <div className="text-4xl font-headline font-extrabold text-on-surface mb-4">
-                ${result.required_salary.toLocaleString()}
+                {currency.symbol}{Math.round(result.required_salary * effectiveRate).toLocaleString()}
               </div>
 
               <div className="flex items-center gap-3">
@@ -194,7 +239,7 @@ export default function Dashboard({ onBack }) {
                   {Math.abs(result.salary_difference_percent)}% {result.salary_difference_percent <= 0 ? "Decrease" : "Increase"}
                 </span>
                 <span className="text-xs text-on-surface-variant font-medium">
-                  vs. Current (${salary.toLocaleString()})
+                  vs. Current ({currency.symbol}{salary.toLocaleString()})
                 </span>
               </div>
             </div>
@@ -203,7 +248,7 @@ export default function Dashboard({ onBack }) {
             <div className="lg:col-span-2 bg-surface-container-lowest border border-outline-variant rounded-2xl p-8 shadow-sm">
               <div className="flex justify-between items-center mb-2">
                 <h3 className="font-headline font-bold text-lg text-on-surface">
-                  Cost Category Comparison
+                  Cost Category Comparison ({currency.symbol})
                 </h3>
               </div>
               <CostChart origin={result.origin} target={result.target} />
