@@ -3,6 +3,7 @@ import { Building2, PlaneTakeoff, DollarSign, ArrowDown, ArrowUp, Coins } from "
 import CostChart from "./CostChart";
 import DetailedBreakdown from "./DetailedBreakdown";
 import CitySearchSelect from "./CitySearchSelect";
+import ComparisonDeepDive from "./ComparisonDeepDive";
 import { fetchCities, compareCities } from "../api";
 
 const CURRENCY_PRESETS = [
@@ -262,10 +263,13 @@ export default function Dashboard({ onBack }) {
         )}
 
         {/* Dedicated Deep-Dive Tab */}
+        {/* Dedicated Deep-Dive Tab */}
         {result && activeTab === "comparison" && (
-          <div className="space-y-6">
-            <DetailedBreakdown origin={result.origin} target={result.target} />
-          </div>
+          <ComparisonDeepDive
+            result={result}
+            currency={currency}
+            effectiveRate={effectiveRate}
+          />
         )}
       </main>
 
