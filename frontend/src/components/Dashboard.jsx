@@ -85,10 +85,10 @@ export default function Dashboard({ onBack }) {
           Relocation Compass
         </div>
 
-        <div className="hidden md:flex gap-8">
+        <div className="flex items-center justify-between md:justify-start w-full md:w-auto gap-2 sm:gap-6 md:gap-8">
           <button
             onClick={() => setActiveTab("dashboard")}
-            className={`pb-1 font-semibold text-sm transition-colors ${
+            className={`pb-1 font-semibold text-xs sm:text-sm text-center transition-colors whitespace-nowrap ${
               activeTab === "dashboard"
                 ? "text-primary border-b-2 border-primary"
                 : "text-on-surface-variant hover:text-primary"
@@ -96,22 +96,22 @@ export default function Dashboard({ onBack }) {
           >
             Dashboard
           </button>
+
           <button
             onClick={() => setActiveTab("comparison")}
-            className={`pb-1 font-semibold text-sm transition-colors ${
+            className={`pb-1 font-semibold text-xs sm:text-sm text-center transition-colors whitespace-nowrap ${
               activeTab === "comparison"
                 ? "text-primary border-b-2 border-primary"
                 : "text-on-surface-variant hover:text-primary"
             }`}
           >
-            Comparison Deep-Dive
+            <span className="inline md:hidden">Deep-Dive</span>
+            <span className="hidden md:inline">Comparison Deep-Dive</span>
           </button>
-        </div>
 
-        <div className="flex gap-4">
           <button
             onClick={onBack}
-            className="text-primary text-sm font-semibold px-4 py-2 hover:opacity-75"
+            className="text-primary text-xs sm:text-sm font-semibold pb-1 hover:opacity-75 whitespace-nowrap text-center"
           >
             Overview
           </button>

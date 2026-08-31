@@ -269,8 +269,16 @@ export default function ComparisonDeepDive({ result, currency, effectiveRate }) 
                 content={<CustomTreemapTile />}
               >
                 <Tooltip
+                contentStyle={{
+                backgroundColor: "#064e3b", // dark emerald container
+                borderColor: "#10b981",     // crisp border
+                 borderRadius: "0.5rem",
+                color: "#bbf7d0",
+                }}
+                itemStyle={{
+              color: "#bbf7d0",          // forces text/numbers to light green
+                }}
                   formatter={(val) => `${val}% Total Weight`}
-                  contentStyle={{ backgroundColor: "#1b361f", borderRadius: "12px", border: "none", color: "#fff" }}
                 />
               </Treemap>
             </ResponsiveContainer>
